@@ -1115,21 +1115,18 @@
             const currentSelectionMade = appState.rankings.some(r => r.rank === appState.currentPreference);
 
             // ===== VISUAL DISABLE FIX =====
-            // nextPrefButton.disabled = !currentSelectionMade || allCandidatesRanked;
             if (!currentSelectionMade || allCandidatesRanked) {
                 nextPrefButton.classList.add('btn-disabled');
             } else {
                 nextPrefButton.classList.remove('btn-disabled');
             }
 
-            // clearLastButton.disabled = appState.rankings.length === 0;
             if (appState.rankings.length === 0) {
                 clearLastButton.classList.add('btn-disabled');
             } else {
                 clearLastButton.classList.remove('btn-disabled');
             }
 
-            // confirmRankingsButton.disabled = appState.rankings.length === 0;
             if (appState.rankings.length === 0) {
                 confirmRankingsButton.classList.add('btn-disabled');
             } else {
