@@ -204,7 +204,7 @@
                 <div class="bg-blue-50 p-4">
                     <h3 class="text-xl font-bold text-center text-blue-800">PART A: Your Local (STV) Vote</h3>
                 </div>
-                
+
                 <!-- Step 2 -->
                 <div class="flex items-start p-4 border-b bg-blue-50">
                     <!-- Icon: cursor-arrow-rays -->
@@ -218,7 +218,7 @@
                         <p class="text-gray-700">Find your #1 preferred candidate. Press the "Select" button next to their name.</p>
                     </div>
                 </div>
-                
+
                 <!-- Step 3 -->
                 <div class="flex items-start p-4 border-b bg-blue-50">
                      <!-- Icon: Green Button -->
@@ -229,7 +229,7 @@
                         <p class="text-gray-700">Press the large GREEN "Next Preference" button to move to your next rank.</p>
                     </div>
                 </div>
-                
+
                 <!-- Step 4 -->
                 <div class="flex items-start p-4 border-b bg-blue-50">
                     <!-- Icon: cursor-arrow-rays -->
@@ -243,7 +243,7 @@
                         <p class="text-gray-700">Find your #2 preferred candidate. Press the "Select" button next to their name.</p>
                     </div>
                 </div>
-                
+
                 <!-- Step 5 -->
                 <div class="flex items-start p-4 border-b bg-blue-50">
                     <!-- Icon: arrow-path -->
@@ -276,7 +276,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
                     </svg>
                 </div>
-                
+
                 <!-- PART B HEADER -->
                 <div class="bg-pink-50 p-4">
                     <h3 class="text-xl font-bold text-center text-pink-800">PART B: Your National (List) Vote</h3>
@@ -309,7 +309,7 @@
                         <p class="text-gray-700">A long, final "BEEP" will sound. Your vote is now successfully cast.</p>
                     </div>
                 </div>
-                
+
                 <!-- Step 9 -->
                 <div class="flex items-start p-4 bg-pink-50">
                     <!-- Icon: document-text -->
@@ -323,7 +323,7 @@
                         <p class="text-gray-700">Look at the glass window on the VVPAT printer. A slip will appear for 7 seconds. Verify that BOTH your STV ranks and your National Party choice are correct.</p>
                     </div>
                 </div>
-                
+
             </div>
         </div>
         <!-- ===== End of Visual Infographic Guide ===== -->
@@ -334,7 +334,7 @@
                 POLLING OFFICER: Press to Activate EVM for Next Voter
             </button>
         </div>
-        
+
         <!-- ===== NEW: Polling Officer Terminal ===== -->
         <div id="officer-terminal" class="w-full max-w-6xl mb-4 bg-gray-900 text-white rounded-lg shadow-lg border border-gray-700 hidden">
             <h3 class="text-lg font-bold p-3 bg-gray-700 rounded-t-lg text-yellow-300">Polling Officer Terminal (Live Log)</h3>
@@ -359,7 +359,7 @@
                 <div id="section-a" class="w-full md:w-2/3 p-4 border-b-4 md:border-b-0 md:border-r-4 border-gray-800 bg-blue-50 section-disabled">
                     <h2 class="text-2xl font-bold text-center text-blue-800 mb-4">PART A: LOCAL (STV) VOTE</h2>
                     <p class="text-center text-gray-700 mb-4">Rank candidates in order of preference.</p>
-                    
+
                     <!-- Candidate List -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-4 gap-y-3 mb-4">
                         <!-- Candidate 1 -->
@@ -623,7 +623,7 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     <!-- Action Buttons -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                         <button id="next-pref-btn" class="bg-green-600 text-white w-full py-4 rounded-lg font-bold text-lg shadow-md hover:bg-green-700 transition">
@@ -726,7 +726,7 @@
         <h2 class="text-2xl font-bold text-center mb-4">Admin Panel</h2>
         <div class="text-center mb-4">
             <p class="text-lg">Total Votes Cast: <strong id="total-votes-count">0</strong></p>
-            
+
             <!-- Auto-Generate Section -->
             <div class="flex justify-center items-center gap-2 mt-4 p-4 bg-gray-50 rounded-lg border">
                 <input type="number" id="auto-vote-count-input" value="1000" min="1" max="10000" class="border border-gray-300 rounded-lg p-2 w-28 text-center text-lg">
@@ -784,17 +784,17 @@
         const lcd = document.getElementById('lcd-screen');
         const sectionA = document.getElementById('section-a');
         const sectionB = document.getElementById('section-b');
-        
+
         const startVoteButton = document.getElementById('start-vote-btn');
         const nextPrefButton = document.getElementById('next-pref-btn');
         const clearLastButton = document.getElementById('clear-last-btn');
         const confirmRankingsButton = document.getElementById('confirm-rankings-btn');
-        
+
         const stvSelectButtons = document.querySelectorAll('.stv-select-btn');
         const stvLights = document.querySelectorAll('.stv-light');
         const listVoteButtons = document.querySelectorAll('.list-vote-btn');
         const listLights = document.querySelectorAll('.list-light');
-        
+
         const vvpatModal = document.getElementById('vvpat-modal');
         const vvpatSlip = document.getElementById('vvpat-slip');
         const closeVvpatButton = document.getElementById('close-vvpat-btn');
@@ -816,7 +816,7 @@
         const stvWinnersList = document.getElementById('stv-winners-list');
         const stvDebugLog = document.getElementById('stv-debug-log');
         const listPrResultsTable = document.getElementById('list-pr-results-table');
-        const listPrDebugLog = document.getElementById('list-pr-debug-log'); 
+        const listPrDebugLog = document.getElementById('list-pr-debug-log');
 
         // --- Application State ---
         let appState;
@@ -838,7 +838,7 @@
 
         function init() {
             appState = { ...initialState, rankings: [], rankedCandidateIds: new Set() };
-            
+
             // --- Event Listeners ---
             startVoteButton.addEventListener('click', startVote);
             nextPrefButton.addEventListener('click', nextPreference);
@@ -851,12 +851,12 @@
 
             stvSelectButtons.forEach(btn => {
                 btn.addEventListener('click', () => selectCandidate(btn.dataset.id, btn.dataset.name));
-                stvCandidateMap.set(btn.dataset.id, btn.dataset.name); 
+                stvCandidateMap.set(btn.dataset.id, btn.dataset.name);
             });
 
             listVoteButtons.forEach(btn => {
                 btn.addEventListener('click', () => selectParty(btn.dataset.id, btn.dataset.name));
-                listPartyMap.set(btn.dataset.id, btn.dataset.name); 
+                listPartyMap.set(btn.dataset.id, btn.dataset.name);
             });
 
             updateUI();
@@ -890,7 +890,7 @@
             appState.state = 'stv_ranking';
             appState.currentPreference = 1;
             startVoteButton.classList.add('hidden');
-            
+
             // Show and clear the officer terminal
             officerTerminal.classList.remove('hidden');
             officerLog.innerHTML = '';
@@ -898,7 +898,7 @@
 
             updateUI();
         }
-        
+
         // ===== SECRECY FIX =====
         function selectCandidate(id, name) {
             if (appState.state !== 'stv_ranking') {
@@ -908,7 +908,7 @@
             if (appState.rankedCandidateIds.has(id)) {
                 const existingRank = appState.rankings.find(r => r.id === id);
                 if (existingRank && existingRank.rank !== appState.currentPreference) {
-                    return; 
+                    return;
                 }
             }
 
@@ -923,7 +923,7 @@
                 appState.rankings.push({ rank: appState.currentPreference, id, name });
                 appState.rankedCandidateIds.add(id);
             }
-            
+
             // Log the action, NOT the choice.
             logToOfficer(`Voter selected Preference #${appState.currentPreference}`);
             updateUI();
@@ -932,38 +932,38 @@
 
         // ===== ERROR LOGGING FIX (No .disabled) =====
         function nextPreference() {
-            if (appState.state !== 'stv_ranking') return; 
+            if (appState.state !== 'stv_ranking') return;
 
             const selectionMade = appState.rankings.some(r => r.rank === appState.currentPreference);
             const allCandidatesRanked = appState.rankings.length === stvSelectButtons.length;
 
             if (!selectionMade) {
                 lcd.classList.add('text-red-500');
-                logToOfficer("Error: 'Next Preference' pressed without selection.", true); 
+                logToOfficer("Error: 'Next Preference' pressed without selection.", true);
                 setTimeout(() => lcd.classList.remove('text-red-500'), 500);
                 return;
             }
-            
+
             if (allCandidatesRanked) {
                 logToOfficer("Error: 'Next Preference' pressed when all candidates ranked.", true);
                 return; // Do nothing if all are ranked
             }
-            
+
             appState.currentPreference++;
             logToOfficer(`Voter proceeding to Preference #${appState.currentPreference}`);
             updateUI();
         }
 
         function clearLast() {
-            if (appState.state !== 'stv_ranking') return; 
+            if (appState.state !== 'stv_ranking') return;
 
             if (appState.rankings.length === 0) {
-                logToOfficer("Error: 'Clear Last' pressed with no rankings.", true); 
+                logToOfficer("Error: 'Clear Last' pressed with no rankings.", true);
                 return;
             }
-            
+
             const lastRank = appState.rankings.pop();
-            
+
             if (lastRank) {
                 appState.rankedCandidateIds.delete(lastRank.id);
                 appState.currentPreference = lastRank.rank;
@@ -974,19 +974,19 @@
         }
 
         function confirmRankings() {
-            if (appState.state !== 'stv_ranking') return; 
+            if (appState.state !== 'stv_ranking') return;
 
             if (appState.rankings.length === 0) {
                 lcd.textContent = "Please rank at least 1 candidate.";
                 lcd.classList.add('text-red-500');
-                logToOfficer("Error: 'Confirm Rankings' pressed with 0 rankings.", true); 
+                logToOfficer("Error: 'Confirm Rankings' pressed with 0 rankings.", true);
                 setTimeout(() => {
                     lcd.classList.remove('text-red-500');
                     updateUI();
                 }, 2000);
                 return;
             }
-            
+
             appState.state = 'list_voting';
             logToOfficer("Voter confirmed STV rankings. Proceeding to Section B.");
             updateUI();
@@ -996,14 +996,14 @@
         // ===== SECRECY FIX =====
         function selectParty(id, name) {
             if (appState.state !== 'list_voting') return;
-            
+
             appState.listVote = { id, name };
             appState.state = 'vote_cast';
-            
+
             // Log the action, NOT the choice.
             logToOfficer(`Voter selected National Party`);
             logToOfficer("Vote Cast. Awaiting VVPAT verification.");
-            
+
             updateUI();
             showVVPAT();
         }
@@ -1020,7 +1020,7 @@
             let listSlipContent = '\nPART B: NATIONAL (LIST) VOTE\n';
             listSlipContent += '-----------------------------------\n';
             listSlipContent += `${appState.listVote.name}\n`;
-            
+
             vvpatSlip.textContent = stvSlipContent + listSlipContent;
             vvpatModal.classList.remove('hidden');
 
@@ -1031,7 +1031,7 @@
 
         function closeVVPATAndStoreVote() {
             if (appState.state !== 'vote_cast') {
-                return; 
+                return;
             }
 
             allVotes.push({
@@ -1042,7 +1042,7 @@
 
             vvpatModal.classList.add('hidden');
             startVoteButton.classList.remove('hidden');
-            
+
             logToOfficer("VVPAT confirmed. Vote stored. Resetting EVM.");
             setTimeout(() => {
                  officerTerminal.classList.add('hidden'); // Hide terminal after vote is done
@@ -1136,7 +1136,7 @@
                 confirmRankingsButton.classList.remove('btn-disabled');
             }
             // ===== END VISUAL DISABLE FIX =====
-            
+
             if (appState.state === 'list_voting') {
                 sectionB.classList.remove('section-disabled');
             } else {
@@ -1145,7 +1145,7 @@
         }
 
         // --- Auto-Generation Function ---
-        
+
         function handleClearAllVotes() {
             allVotes = [];
             totalVotesCount.textContent = "0";
@@ -1156,7 +1156,7 @@
             stvWinnersList.innerHTML = "";
             stvDebugLog.textContent = "";
             listPrResultsTable.innerHTML = "";
-            listPrDebugLog.textContent = ""; 
+            listPrDebugLog.textContent = "";
         }
 
         function shuffleArray(array) {
@@ -1189,7 +1189,7 @@
                 let mostPopular = null;
                 let maxPop = 0;
                 candidateIds.forEach(id => {
-                    const pop = 0.5 + Math.random() * 1.5; 
+                    const pop = 0.5 + Math.random() * 1.5;
                     candidatePopularity[id] = pop;
                     if (pop > maxPop) {
                         maxPop = pop;
@@ -1226,16 +1226,19 @@
                         weightedPool.push(id);
                     }
                 });
-                
+
                 if (weightedPool.length === 0) weightedPool = [...candidateIds];
+
+                // Hoist copy outside the loop to avoid redundant allocations
+                const poolToShuffle = [...weightedPool];
 
                 for (let i = 0; i < count; i++) {
                     // 1. Generate *WEIGHTED* STV vote
                     const numPreferences = Math.floor(Math.random() * candidateIds.length) + 1;
-                    const shuffledWeightedPool = shuffleArray([...weightedPool]);
+                    const shuffledWeightedPool = shuffleArray(poolToShuffle);
                     const uniqueCandidates = [...new Set(shuffledWeightedPool)];
                     const selectedCandidates = uniqueCandidates.slice(0, numPreferences);
-                    
+
                     const stvRankings = selectedCandidates.map((id, index) => ({
                         rank: index + 1,
                         id: id,
@@ -1310,7 +1313,7 @@
 
             // 1. Calculate STV
             const stvResults = calculateSTV(allVotes, STV_SEATS_TO_FILL);
-            
+
             // 2. Calculate List-PR (New Logic)
             const listResults = calculateListPR(allVotes, LIST_SEATS_TO_FILL, LIST_PR_THRESHOLD);
 
@@ -1321,7 +1324,7 @@
                 .map((name, i) => `<li><strong>Elected #${i + 1}:</strong> ${name}</li>`)
                 .join('');
             stvDebugLog.textContent = stvResults.log;
-            
+
             // 4. Populate List-PR Results
             let tableHtml = '';
             listResults.sortedPartyData.forEach(party => {
@@ -1354,7 +1357,7 @@
             let winners = [];
             let candidateData = {};
             stvCandidateMap.forEach((name, id) => {
-                candidateData[id] = { 
+                candidateData[id] = {
                     name: name.split(' (')[0],
                     status: 'running'
                 };
@@ -1412,7 +1415,7 @@
                 if (round === 1) {
                     log += "--- Round 1 (Zero-Vote Elimination) ---\n";
                     let zeroVoteCandidates = Object.keys(roundVotes).filter(id => roundVotes[id] === 0);
-                    
+
                     if (zeroVoteCandidates.length > 0) {
                         log += `Eliminating all candidates with 0 votes:\n`;
                         zeroVoteCandidates.forEach(id => {
@@ -1427,8 +1430,8 @@
                     if (runningCandidatesNow.length < seatsToFill) {
                         log += `\nWARNING: Only ${runningCandidatesNow.length} candidates remain for ${seatsToFill} seats after zero-vote elimination.\n`;
                         winners = runningCandidatesNow;
-                        runningCandidatesNow.forEach(id => { 
-                            candidateData[id].status = 'elected'; 
+                        runningCandidatesNow.forEach(id => {
+                            candidateData[id].status = 'elected';
                             log += `  - ✅ ELECTED: ${candidateData[id].name} (filling remaining seat)\n`;
                         });
                         log += "All remaining candidates are elected.\n";
@@ -1461,9 +1464,9 @@
                         // ===== FORMATTING FIX =====
                         log += `✅ ELECTED: ${candidateData[id].name} has ${parseFloat(roundVotes[id].toFixed(4))} votes, meeting quota of ${quota}.\n`;
                         log += `  - Surplus: ${parseFloat(surplus.toFixed(4))}. Transfer Value: ${parseFloat(transferValue.toFixed(6))}.\n`;
-                        
+
                         let ballotsToTransfer = 0;
-                        
+
                         // Find all ballots that voted for this winner
                         ballots.forEach(ballot => {
                             // Find the *first* 'running' candidate on this ballot
@@ -1475,7 +1478,7 @@
                                     break;
                                 }
                             }
-                            
+
                             // If this ballot's first choice was the winner, transfer its value
                             if (firstChoiceId === id) {
                                 ballot.value = ballot.value * transferValue;
@@ -1540,7 +1543,7 @@
                         break;
                     }
                 }
-                
+
                 log += "\n";
                 round++;
             }
@@ -1548,7 +1551,7 @@
             log += "\n--- Final Results ---\n";
             const finalWinners = winners.slice(0, seatsToFill);
             log += "Final Elected Winners:\n" + finalWinners.map((id, i) => `  ${i+1}. ${candidateData[id].name}`).join('\n') + "\n";
-            
+
             // Add warning for unfilled seats
             let unfilledSeats = seatsToFill - finalWinners.length;
             if (unfilledSeats > 0) {
@@ -1571,9 +1574,9 @@
             let log = '';
             let partyData = {};
             listPartyMap.forEach((name, id) => {
-                partyData[id] = { 
+                partyData[id] = {
                     id: id,
-                    name: name, 
+                    name: name,
                     votes: 0,
                     votePercent: 0,
                     disqualified: false
@@ -1590,13 +1593,13 @@
             });
 
             if (totalListVotes === 0) {
-                return { 
-                    seatCounts: {}, 
+                return {
+                    seatCounts: {},
                     sortedPartyData: Object.values(partyData),
                     log: "No List-PR votes cast."
                 };
             }
-            
+
             log += `Total National List Votes: ${totalListVotes}\n`;
             log += `Seats to Fill: ${seatsToFill}\n\n`;
 
@@ -1604,7 +1607,7 @@
             const thresholdValue = totalListVotes * thresholdPercent;
             let qualifiedParties = [];
             let totalQualifiedVotes = 0;
-            
+
             // ===== NEW RULE 2: Find ALL largest parties =====
             let largestParties = [];
             let maxVotes = -1;
@@ -1622,7 +1625,7 @@
                     qualifiedParties.push(party);
                     totalQualifiedVotes += party.votes;
                     log += `  - ✅ ${party.name} QUALIFIED (Votes: ${party.votes})\n`;
-                    
+
                     // ===== NEW RULE 2: Logic to find ties =====
                     if (party.votes > maxVotes) {
                         maxVotes = party.votes;
@@ -1639,7 +1642,7 @@
             // Step 3: Calculate Initial Seat Allocation (Rounding Down)
             let seatCounts = {};
             let totalAllocatedSeats = 0;
-            
+
             if (totalQualifiedVotes === 0) {
                  log += "No parties qualified. 0 seats allocated.\n";
             } else {
@@ -1648,7 +1651,7 @@
                     const initialSeats = Math.floor(voteShare * seatsToFill);
                     seatCounts[party.id] = initialSeats;
                     totalAllocatedSeats += initialSeats;
-                    
+
                     log += `  - ${party.name} Share: ${(voteShare * 100).toFixed(2)}%\n`;
                     log += `    -> Initial Seats: ${initialSeats} (rounded down from ${(voteShare * seatsToFill).toFixed(2)})\n`;
                 });
@@ -1680,7 +1683,7 @@
             } else {
                 log += "No surplus seats to allocate.\n";
             }
-            
+
             // Get sorted list for display
             const sortedPartyData = Object.values(partyData).sort((a,b) => b.votes - a.votes);
 
