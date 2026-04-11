@@ -781,6 +781,16 @@
 
     <script src="js/utils.js"></script>
     <script>
+        /**
+         * Generates a cryptographically secure random number in the range [0, 1).
+         * Replaces Math.random() for sensitive operations like tie-breaking.
+         */
+        function getSecureRandom() {
+            const array = new Uint32Array(1);
+            window.crypto.getRandomValues(array);
+            return array[0] / (0xffffffff + 1);
+        }
+
         // --- DOM Elements ---
         const lcd = document.getElementById('lcd-screen');
         const sectionA = document.getElementById('section-a');
@@ -1160,6 +1170,17 @@
             listPrDebugLog.textContent = ""; 
         }
 
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(getSecureRandom() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
         function handleAutoGenerateVotes() {
             const count = parseInt(autoVoteCountInput.value, 10);
             if (isNaN(count) || count <= 0) {
@@ -1179,7 +1200,7 @@
                 let mostPopular = null;
                 let maxPop = 0;
                 candidateIds.forEach(id => {
-                    const pop = 0.5 + Math.random() * 1.5; 
+                    const pop = 0.5 + getSecureRandom() * 1.5;
                     candidatePopularity[id] = pop;
                     if (pop > maxPop) {
                         maxPop = pop;
@@ -1188,8 +1209,8 @@
                 });
 
                 // --- Electorate Mood ---
-                const loyalVoterPercent = 0.5 + (Math.random() * 0.4);
-                const chaoticVoterPercent = 0.05 + (Math.random() * 0.2);
+                const loyalVoterPercent = 0.5 + (getSecureRandom() * 0.4);
+                const chaoticVoterPercent = 0.05 + (getSecureRandom() * 0.2);
                 const loyalThreshold = loyalVoterPercent;
                 const chaoticThreshold = loyalVoterPercent + chaoticVoterPercent;
 
@@ -1221,7 +1242,7 @@
 
                 for (let i = 0; i < count; i++) {
                     // 1. Generate *WEIGHTED* STV vote
-                    const numPreferences = Math.floor(Math.random() * candidateIds.length) + 1;
+                    const numPreferences = Math.floor(getSecureRandom() * candidateIds.length) + 1;
                     const shuffledWeightedPool = shuffleArray([...weightedPool]);
                     const uniqueCandidates = [...new Set(shuffledWeightedPool)];
                     const selectedCandidates = uniqueCandidates.slice(0, numPreferences);
@@ -1235,7 +1256,7 @@
                     // 2. Generate *STRATEGIC* List-PR vote (based on Mood)
                     let randomPartyId = null;
                     const pref1 = stvRankings[0];
-                    const voterTypeRoll = Math.random();
+                    const voterTypeRoll = getSecureRandom();
                     let isLoyal = false;
 
                     if (pref1) {
@@ -1254,7 +1275,7 @@
                                 } else { // "Oppositional Voter"
                                     const oppositionParties = partyIds.filter(id => id !== alliedNationalPartyId);
                                     if (oppositionParties.length > 0) {
-                                        randomPartyId = oppositionParties[Math.floor(Math.random() * oppositionParties.length)];
+                                        randomPartyId = oppositionParties[Math.floor(getSecureRandom() * oppositionParties.length)];
                                     }
                                 }
                             }
@@ -1266,7 +1287,7 @@
                     // 2. "Loyal Voter" whose #1 pick was local-only (isLoyal === false)
                     // 3. "Oppositional Voter" who had no opposition
                     if (!randomPartyId) {
-                        randomPartyId = partyIds[Math.floor(Math.random() * partyIds.length)];
+                        randomPartyId = partyIds[Math.floor(getSecureRandom() * partyIds.length)];
                     }
 
                     const listVote = {
@@ -1516,7 +1537,7 @@
                             log += `  - Tie for last place (with ${parseFloat(minVotes.toFixed(4))} votes) between: ${tiedForLast.map(id => candidateData[id].name).join(', ')}\n`;
                             log += `  - Randomly selecting one to eliminate.\n`;
                         }
-                        eliminatedCandId = tiedForLast[Math.floor(Math.random() * tiedForLast.length)];
+                        eliminatedCandId = tiedForLast[Math.floor(getSecureRandom() * tiedForLast.length)];
                     }
 
 
@@ -1661,7 +1682,7 @@
                     log += `Tie for largest party (${maxVotes} votes) between: ${largestParties.map(p => p.name).join(', ')}.\n`;
                     log += `Allocating ${surplusSeats} surplus seat(s) randomly among them...\n`;
                     for (let i = 0; i < surplusSeats; i++) {
-                        let drawnParty = largestParties[Math.floor(Math.random() * largestParties.length)];
+                        let drawnParty = largestParties[Math.floor(getSecureRandom() * largestParties.length)];
                         seatCounts[drawnParty.id] = (seatCounts[drawnParty.id] || 0) + 1;
                         log += `  - Surplus seat #${i+1} allocated to: ${drawnParty.name} (Random Draw)\n`;
                     }
