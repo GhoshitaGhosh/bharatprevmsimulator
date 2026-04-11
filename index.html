@@ -1344,6 +1344,7 @@
             stvBallots.textContent = allVotes.length;
             stvQuota.textContent = stvResults.quota;
             stvWinnersList.innerHTML = stvResults.winners
+                .map((name, i) => `<li><strong>Elected #${i + 1}:</strong> ${escapeHtml(name)}</li>`)
                 .map((name, i) => `<li><strong>Elected #${i + 1}:</strong> ${name}</li>`)
                 .join('');
             stvDebugLog.textContent = stvResults.log;
@@ -1354,6 +1355,7 @@
                 const seats = listResults.seatCounts[party.id] || 0;
                 tableHtml += `
                     <tr class="border-b ${party.disqualified ? 'opacity-50 line-through' : ''}">
+                        <td class="p-2">${escapeHtml(party.name)}</td>
                         <td class="p-2">${party.name}</td>
                         <td class="p-2 text-right">${party.votes} (${party.votePercent}%)</td>
                         <td class="p-2 text-right font-bold ${seats > 0 ? 'text-green-700' : 'text-gray-500'}">${seats}</td>
