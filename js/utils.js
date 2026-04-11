@@ -9,6 +9,15 @@ function shuffleArray(array) {
     return array;
 }
 
+function escapeHtml(unsafe) {
+    return String(unsafe)
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { shuffleArray };
+    module.exports = { shuffleArray, escapeHtml };
 }

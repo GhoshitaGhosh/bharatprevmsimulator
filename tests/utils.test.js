@@ -1,6 +1,6 @@
 const { test } = require('node:test');
 const assert = require('node:assert');
-const { shuffleArray } = require('../js/utils.js');
+const { shuffleArray, escapeHtml } = require('../js/utils.js');
 
 test('shuffleArray should return the same array instance (in-place mutation)', () => {
     const input = [1, 2, 3];
@@ -35,10 +35,6 @@ test('shuffleArray should potentially change the order of elements', () => {
     const inputCopy = [...input];
     shuffleArray(input);
 
-    // We check if it's different. If it's the same, we might want to retry
-    // but usually in tests we just want to see it *can* shuffle.
-    // For a deterministic test of a random function, we might mock Math.random,
-    // but here we just do a basic check.
     let isDifferent = false;
     for (let i = 0; i < input.length; i++) {
         if (input[i] !== inputCopy[i]) {
@@ -47,7 +43,12 @@ test('shuffleArray should potentially change the order of elements', () => {
         }
     }
 
-    // If it's not different, it doesn't strictly mean it's broken,
-    // but for 10 elements it almost certainly should be.
     assert.ok(isDifferent, 'Array should be shuffled');
+});
+
+test('escapeHtml should escape special characters', () => {
+    assert.strictEqual(escapeHtml('<script>alert("xss")</script>'), '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+    assert.strictEqual(escapeHtml('A & B'), 'A &amp; B');
+    assert.strictEqual(escapeHtml("O'Reilly"), 'O&#039;Reilly');
+    assert.strictEqual(escapeHtml('Normal text'), 'Normal text');
 });
