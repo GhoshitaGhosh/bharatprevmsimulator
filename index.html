@@ -779,6 +779,18 @@
         </div>
     </div>
 
+    <script src="js/utils.js"></script>
+    <script>
+        /**
+         * Generates a cryptographically secure random number in the range [0, 1).
+         * Replaces Math.random() for sensitive operations like tie-breaking.
+         */
+        function getSecureRandom() {
+            const array = new Uint32Array(1);
+            window.crypto.getRandomValues(array);
+            return array[0] / (0xffffffff + 1);
+        }
+
     <script>
         // --- DOM Elements ---
         const lcd = document.getElementById('lcd-screen');
@@ -1162,6 +1174,7 @@
         function shuffleArray(array) {
             let currentIndex = array.length, randomIndex;
             while (currentIndex != 0) {
+                randomIndex = Math.floor(getSecureRandom() * currentIndex);
                 randomIndex = Math.floor(Math.random() * currentIndex);
                 currentIndex--;
                 [array[currentIndex], array[randomIndex]] = [
@@ -1189,6 +1202,7 @@
                 let mostPopular = null;
                 let maxPop = 0;
                 candidateIds.forEach(id => {
+                    const pop = 0.5 + getSecureRandom() * 1.5;
                     const pop = 0.5 + Math.random() * 1.5;
                     candidatePopularity[id] = pop;
                     if (pop > maxPop) {
@@ -1198,6 +1212,8 @@
                 });
 
                 // --- Electorate Mood ---
+                const loyalVoterPercent = 0.5 + (getSecureRandom() * 0.4);
+                const chaoticVoterPercent = 0.05 + (getSecureRandom() * 0.2);
                 const loyalVoterPercent = 0.5 + (Math.random() * 0.4);
                 const chaoticVoterPercent = 0.05 + (Math.random() * 0.2);
                 const loyalThreshold = loyalVoterPercent;
@@ -1229,6 +1245,10 @@
 
                 if (weightedPool.length === 0) weightedPool = [...candidateIds];
 
+                for (let i = 0; i < count; i++) {
+                    // 1. Generate *WEIGHTED* STV vote
+                    const numPreferences = Math.floor(getSecureRandom() * candidateIds.length) + 1;
+                    const shuffledWeightedPool = shuffleArray([...weightedPool]);
                 // Hoist copy outside the loop to avoid redundant allocations
                 const poolToShuffle = [...weightedPool];
 
@@ -1248,6 +1268,7 @@
                     // 2. Generate *STRATEGIC* List-PR vote (based on Mood)
                     let randomPartyId = null;
                     const pref1 = stvRankings[0];
+                    const voterTypeRoll = getSecureRandom();
                     const voterTypeRoll = Math.random();
                     let isLoyal = false;
 
@@ -1267,6 +1288,7 @@
                                 } else { // "Oppositional Voter"
                                     const oppositionParties = partyIds.filter(id => id !== alliedNationalPartyId);
                                     if (oppositionParties.length > 0) {
+                                        randomPartyId = oppositionParties[Math.floor(getSecureRandom() * oppositionParties.length)];
                                         randomPartyId = oppositionParties[Math.floor(Math.random() * oppositionParties.length)];
                                     }
                                 }
@@ -1279,6 +1301,7 @@
                     // 2. "Loyal Voter" whose #1 pick was local-only (isLoyal === false)
                     // 3. "Oppositional Voter" who had no opposition
                     if (!randomPartyId) {
+                        randomPartyId = partyIds[Math.floor(getSecureRandom() * partyIds.length)];
                         randomPartyId = partyIds[Math.floor(Math.random() * partyIds.length)];
                     }
 
@@ -1529,6 +1552,7 @@
                             log += `  - Tie for last place (with ${parseFloat(minVotes.toFixed(4))} votes) between: ${tiedForLast.map(id => candidateData[id].name).join(', ')}\n`;
                             log += `  - Randomly selecting one to eliminate.\n`;
                         }
+                        eliminatedCandId = tiedForLast[Math.floor(getSecureRandom() * tiedForLast.length)];
                         eliminatedCandId = tiedForLast[Math.floor(Math.random() * tiedForLast.length)];
                     }
 
@@ -1674,6 +1698,7 @@
                     log += `Tie for largest party (${maxVotes} votes) between: ${largestParties.map(p => p.name).join(', ')}.\n`;
                     log += `Allocating ${surplusSeats} surplus seat(s) randomly among them...\n`;
                     for (let i = 0; i < surplusSeats; i++) {
+                        let drawnParty = largestParties[Math.floor(getSecureRandom() * largestParties.length)];
                         let drawnParty = largestParties[Math.floor(Math.random() * largestParties.length)];
                         seatCounts[drawnParty.id] = (seatCounts[drawnParty.id] || 0) + 1;
                         log += `  - Surplus seat #${i+1} allocated to: ${drawnParty.name} (Random Draw)\n`;
