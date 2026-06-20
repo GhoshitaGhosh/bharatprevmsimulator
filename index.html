@@ -728,6 +728,30 @@
         <div class="text-center mb-4">
             <p class="text-lg">Total Votes Cast: <strong id="total-votes-count">0</strong></p>
             
+            <!-- Electorate Mood Sliders -->
+            <div class="mt-4 p-4 bg-blue-50 rounded-lg border text-left text-sm max-w-2xl mx-auto">
+                <h3 class="font-bold mb-2">Electorate Mood (Must sum to 100%)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block">Bullet Voters: <span id="val-bullet">30</span>%</label>
+                        <input type="range" id="slider-bullet" min="0" max="100" value="30" class="w-full">
+                    </div>
+                    <div>
+                        <label class="block">Donkey Voters: <span id="val-donkey">5</span>%</label>
+                        <input type="range" id="slider-donkey" min="0" max="100" value="5" class="w-full">
+                    </div>
+                    <div>
+                        <label class="block">Ideological Voters: <span id="val-ideo">45</span>%</label>
+                        <input type="range" id="slider-ideo" min="0" max="100" value="45" class="w-full">
+                    </div>
+                    <div>
+                        <label class="block">Chaotic Voters: <span id="val-chaotic">20</span>%</label>
+                        <input type="range" id="slider-chaotic" min="0" max="100" value="20" class="w-full">
+                    </div>
+                </div>
+                <div id="slider-warning" class="text-red-600 font-bold mt-2 hidden">Total must be exactly 100%! Currently: <span id="slider-total">100</span>%</div>
+            </div>
+            
             <!-- Auto-Generate Section -->
             <div class="flex justify-center items-center gap-2 mt-4 p-4 bg-gray-50 rounded-lg border">
                 <input type="number" id="auto-vote-count-input" value="1000" min="1" max="10000" class="border border-gray-300 rounded-lg p-2 w-28 text-center text-lg">
@@ -810,6 +834,19 @@
         const autoVoteCountInput = document.getElementById('auto-vote-count-input');
         const autoGenerateButton = document.getElementById('auto-generate-btn');
         const autoGenStatus = document.getElementById('auto-gen-status');
+        
+        // Sliders
+        const sBullet = document.getElementById('slider-bullet');
+        const sDonkey = document.getElementById('slider-donkey');
+        const sIdeo = document.getElementById('slider-ideo');
+        const sChaotic = document.getElementById('slider-chaotic');
+        const vBullet = document.getElementById('val-bullet');
+        const vDonkey = document.getElementById('val-donkey');
+        const vIdeo = document.getElementById('val-ideo');
+        const vChaotic = document.getElementById('val-chaotic');
+        const sliderWarning = document.getElementById('slider-warning');
+        const sliderTotal = document.getElementById('slider-total');
+        
         const clearVotesButton = document.getElementById('clear-votes-btn');
         const resultsDisplay = document.getElementById('results-display');
         const stvBallots = document.getElementById('stv-ballots');
@@ -849,6 +886,26 @@
             calculateResultsButton.addEventListener('click', calculateAndShowResults);
             autoGenerateButton.addEventListener('click', handleAutoGenerateVotes);
             clearVotesButton.addEventListener('click', handleClearAllVotes);
+
+            // Slider Logic
+            const sliders = [sBullet, sDonkey, sIdeo, sChaotic];
+            const vals = [vBullet, vDonkey, vIdeo, vChaotic];
+            sliders.forEach((slider, index) => {
+                slider.addEventListener('input', () => {
+                    vals[index].textContent = slider.value;
+                    let total = sliders.reduce((sum, s) => sum + parseInt(s.value), 0);
+                    sliderTotal.textContent = total;
+                    if (total !== 100) {
+                        sliderWarning.classList.remove('hidden');
+                        autoGenerateButton.disabled = true;
+                        autoGenerateButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        sliderWarning.classList.add('hidden');
+                        autoGenerateButton.disabled = false;
+                        autoGenerateButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    }
+                });
+            });
 
             stvSelectButtons.forEach(btn => {
                 btn.addEventListener('click', () => selectCandidate(btn.dataset.id, btn.dataset.name));
@@ -1185,6 +1242,28 @@
                 const candidateIds = Array.from(stvCandidateMap.keys());
                 const partyIds = Array.from(listPartyMap.keys());
 
+                // --- Slider Configuration ---
+                const config = {
+                    bulletPct: parseInt(sBullet.value, 10),
+                    donkeyPct: parseInt(sDonkey.value, 10),
+                    ideoPct: parseInt(sIdeo.value, 10),
+                    chaoticPct: parseInt(sChaotic.value, 10)
+                };
+
+                // --- Ideological Bloc Mapping ---
+                const candBlocMap = {
+                    "cand1": "IND", "cand2": "UPA", "cand3": "NDA", "cand4": "LEFT",
+                    "cand5": "UPA", "cand6": "IND", "cand7": "UPA", "cand8": "IND",
+                    "cand9": "UPA", "cand10": "NDA", "cand11": "NDA", "cand12": "NDA",
+                    "cand13": "IND", "cand14": "LEFT", "cand15": "NDA", "cand16": "IND",
+                    "cand17": "IND", "cand18": "IND", "cand19": "UPA", "cand20": "NDA"
+                };
+
+                const partyBlocMap = {
+                    "party1": "UPA", "party2": "NDA", "party3": "LEFT", 
+                    "party4": "IND", "party5": "IND", "party6": "IND"
+                };
+
                 // --- DYNAMIC STV POPULARITY ---
                 const candidatePopularity = {};
                 let mostPopular = null;
@@ -1198,100 +1277,117 @@
                     }
                 });
 
-                // --- Electorate Mood ---
-                const loyalVoterPercent = 0.5 + (Math.random() * 0.4);
-                const chaoticVoterPercent = 0.05 + (Math.random() * 0.2);
-                const loyalThreshold = loyalVoterPercent;
-                const chaoticThreshold = loyalVoterPercent + chaoticVoterPercent;
-
-                // --- Updated Alliance Map ---
-                // Maps STV candidate's party ABBR -> National List party ID
-                // Note: Some are 'null' (local only)
-                const stvPartyToNationalMap = {
-                    "INC": "party1", "RJD": "party1", "SS": "party1", "AAP": "party1",
-                    "BJP": "party2", "NCP": "party2", "JDU": "party2", "LJP": "party2", "TDP": "party2",
-                    "CPI": "party3", "CPM": "party3",
-                    "IND": "party4", "SP": "party4", "IND2": "party4", "RLD": "party4",
-                    "TMC": "party5", // Regional party contesting nationally
-                    "DMK": "party6", // Regional party contesting nationally
-                    "AIMIM": null,     // Local only
-                    "BJD": null,       // Local only
-                    "YSRCP": null      // Local only
-                };
-
-                // --- Build Weighted Pool for STV ---
-                let weightedPool = [];
-                candidateIds.forEach(id => {
-                    const weight = candidatePopularity[id];
-                    for (let j = 0; j < Math.round(weight * 10); j++) {
-                        weightedPool.push(id);
+                // Cumulative Weight Selection Helper
+                function pickWeighted(options, weights) {
+                    const totalWeight = weights.reduce((acc, w) => acc + w, 0);
+                    let rand = Math.random() * totalWeight;
+                    for (let i = 0; i < options.length; i++) {
+                        rand -= weights[i];
+                        if (rand <= 0) return options[i];
                     }
-                });
-                
-                if (weightedPool.length === 0) weightedPool = [...candidateIds];
+                    return options[options.length - 1]; // Fallback
+                }
 
                 for (let i = 0; i < count; i++) {
-                    // 1. Generate *WEIGHTED* STV vote
-                    const numPreferences = Math.floor(Math.random() * candidateIds.length) + 1;
-                    const shuffledWeightedPool = shuffleArray([...weightedPool]);
-                    const uniqueCandidates = [...new Set(shuffledWeightedPool)];
-                    const selectedCandidates = uniqueCandidates.slice(0, numPreferences);
+                    const typeRoll = Math.random() * 100;
+                    let stvRankings = [];
+                    let listVoteId = null;
                     
-                    const stvRankings = selectedCandidates.map((id, index) => ({
-                        rank: index + 1,
-                        id: id,
-                        name: stvCandidateMap.get(id)
-                    }));
+                    let availableIds = [...candidateIds];
 
-                    // 2. Generate *STRATEGIC* List-PR vote (based on Mood)
-                    let randomPartyId = null;
-                    const pref1 = stvRankings[0];
-                    const voterTypeRoll = Math.random();
-                    let isLoyal = false;
-
-                    if (pref1) {
-                        const partyAbbrMatch = pref1.name.match(/\((.*?)\)/);
-                        if (partyAbbrMatch) {
-                            const partyAbbr = partyAbbrMatch[1];
-                            const alliedNationalPartyId = stvPartyToNationalMap[partyAbbr];
-
-                            if (alliedNationalPartyId) {
-                                // This STV candidate *is* allied with a national party
-                                isLoyal = true;
-                                if (voterTypeRoll < loyalThreshold) { // "Loyal Voter"
-                                    randomPartyId = alliedNationalPartyId;
-                                } else if (voterTypeRoll < chaoticThreshold) { // "Chaotic Voter"
-                                    // (Handled by fallback)
-                                } else { // "Oppositional Voter"
-                                    const oppositionParties = partyIds.filter(id => id !== alliedNationalPartyId);
-                                    if (oppositionParties.length > 0) {
-                                        randomPartyId = oppositionParties[Math.floor(Math.random() * oppositionParties.length)];
-                                    }
-                                }
+                    if (typeRoll < config.bulletPct) {
+                        // BULLET VOTER
+                        const weights = availableIds.map(id => candidatePopularity[id]);
+                        const pick = pickWeighted(availableIds, weights);
+                        stvRankings.push({ rank: 1, id: pick, name: stvCandidateMap.get(pick) });
+                        
+                        const bloc = candBlocMap[pick];
+                        if (bloc === "IND") {
+                            listVoteId = partyIds[Math.floor(Math.random() * partyIds.length)];
+                        } else {
+                            const alliedParties = partyIds.filter(id => partyBlocMap[id] === bloc);
+                            if (alliedParties.length > 0) {
+                                listVoteId = alliedParties[Math.floor(Math.random() * alliedParties.length)];
                             }
                         }
+
+                    } else if (typeRoll < config.bulletPct + config.donkeyPct) {
+                        // DONKEY VOTER
+                        const numPreferences = Math.floor(Math.random() * candidateIds.length) + 1;
+                        for (let r = 0; r < numPreferences; r++) {
+                            const id = `cand${r+1}`;
+                            if(stvCandidateMap.has(id)) {
+                                stvRankings.push({ rank: r + 1, id: id, name: stvCandidateMap.get(id) });
+                            }
+                        }
+                        listVoteId = partyIds[Math.floor(Math.random() * partyIds.length)];
+
+                    } else if (typeRoll < config.bulletPct + config.donkeyPct + config.ideoPct) {
+                        // IDEOLOGICAL VOTER
+                        const numPreferences = Math.floor(Math.random() * 5) + 3; // 3 to 7 preferences
+                        let currentBloc = null;
+                        
+                        for (let r = 0; r < numPreferences; r++) {
+                            if (availableIds.length === 0) break;
+                            
+                            const weights = availableIds.map(id => {
+                                let w = candidatePopularity[id];
+                                if (currentBloc && candBlocMap[id] === currentBloc) {
+                                    w *= 20; // Heavy bias towards same bloc
+                                }
+                                return w;
+                            });
+                            
+                            const pick = pickWeighted(availableIds, weights);
+                            stvRankings.push({ rank: r + 1, id: pick, name: stvCandidateMap.get(pick) });
+                            
+                            if (r === 0) {
+                                currentBloc = candBlocMap[pick];
+                            }
+                            
+                            availableIds = availableIds.filter(id => id !== pick);
+                        }
+                        
+                        const bloc1 = candBlocMap[stvRankings[0].id];
+                        if (bloc1 === "IND") {
+                            listVoteId = partyIds[Math.floor(Math.random() * partyIds.length)];
+                        } else {
+                            const alliedParties = partyIds.filter(id => partyBlocMap[id] === bloc1);
+                            if (alliedParties.length > 0) {
+                                listVoteId = alliedParties[Math.floor(Math.random() * alliedParties.length)];
+                            }
+                        }
+
+                    } else {
+                        // CHAOTIC VOTER
+                        const numPreferences = Math.floor(Math.random() * candidateIds.length) + 1;
+                        for (let r = 0; r < numPreferences; r++) {
+                            if (availableIds.length === 0) break;
+                            const weights = availableIds.map(id => candidatePopularity[id]);
+                            const pick = pickWeighted(availableIds, weights);
+                            stvRankings.push({ rank: r + 1, id: pick, name: stvCandidateMap.get(pick) });
+                            availableIds = availableIds.filter(id => id !== pick);
+                        }
+                        listVoteId = partyIds[Math.floor(Math.random() * partyIds.length)];
+                    }
+                    
+                    // Fallback for list vote
+                    if (!listVoteId) {
+                        listVoteId = partyIds[Math.floor(Math.random() * partyIds.length)];
                     }
 
-                    // Fallback for:
-                    // 1. "Chaotic Voter"
-                    // 2. "Loyal Voter" whose #1 pick was local-only (isLoyal === false)
-                    // 3. "Oppositional Voter" who had no opposition
-                    if (!randomPartyId) {
-                        randomPartyId = partyIds[Math.floor(Math.random() * partyIds.length)];
-                    }
-
-                    const listVote = {
-                        id: randomPartyId,
-                        name: listPartyMap.get(randomPartyId)
-                    };
-
-                    // 3. Store vote
-                    allVotes.push({ stvRankings, listVote });
+                    allVotes.push({
+                        stvRankings: stvRankings,
+                        listVote: {
+                            id: listVoteId,
+                            name: listPartyMap.get(listVoteId)
+                        }
+                    });
                 }
 
                 // 4. Update UI
                 totalVotesCount.textContent = allVotes.length;
-                autoGenStatus.textContent = `Added ${count} votes. (Mood: ${(loyalVoterPercent*100).toFixed(0)}% Loyal. Popular: ${mostPopular})`;
+                autoGenStatus.textContent = `Added ${count} votes. (Most Popular: ${mostPopular})`;
                 autoGenerateButton.disabled = false;
             }, 10);
         }
