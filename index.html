@@ -787,6 +787,23 @@
                     <button id="reset-mood-btn" class="bg-gray-600 text-white px-4 py-1 rounded text-xs hover:bg-gray-700 transition">Reset All Defaults</button>
                 </div>
             </div>
+
+            <!-- Scenario Presets -->
+            <div class="mt-4 p-4 bg-orange-50 rounded-lg border text-left text-sm max-w-2xl mx-auto">
+                <h3 class="font-bold mb-2 text-orange-900">Simulate Multi-Batch Scenarios</h3>
+                <p class="text-xs text-gray-700 mb-3">Run complex, multi-batch electoral scenarios. This sequentially generates batches of votes with different configurations and adds them to the total.</p>
+                <div class="flex gap-2">
+                    <select id="scenario-select" class="border border-gray-400 rounded p-2 flex-1 text-sm bg-white">
+                        <option value="none">-- Choose a Scenario --</option>
+                        <option value="upa_wave">Scenario 1: UPA Wave (High Turnout)</option>
+                        <option value="nda_incumbency">Scenario 2: NDA Incumbency (Divided Electorate)</option>
+                        <option value="fractured">Scenario 3: Fractured Electorate (High Exhaustion)</option>
+                        <option value="regional_surge">Scenario 4: Regional Coalition Surge</option>
+                        <option value="pure_chaos">Scenario 5: Pure Chaos (Maximum Variance)</option>
+                    </select>
+                    <button id="run-scenario-btn" class="bg-orange-600 text-white px-4 py-2 rounded font-bold hover:bg-orange-700 transition">Run Scenario</button>
+                </div>
+            </div>
             
             <!-- Auto-Generate Section -->
             <div class="flex justify-center items-center gap-2 mt-4 p-4 bg-gray-50 rounded-lg border">
@@ -896,6 +913,8 @@
         const popParty5 = document.getElementById('pop-party5');
         const popParty6 = document.getElementById('pop-party6');
         const resetMoodBtn = document.getElementById('reset-mood-btn');
+        const scenarioSelect = document.getElementById('scenario-select');
+        const runScenarioBtn = document.getElementById('run-scenario-btn');
 
         
         const clearVotesButton = document.getElementById('clear-votes-btn');
@@ -936,6 +955,7 @@
             closeVvpatButton.addEventListener('click', closeVVPATAndStoreVote);
             calculateResultsButton.addEventListener('click', calculateAndShowResults);
             autoGenerateButton.addEventListener('click', handleAutoGenerateVotes);
+            runScenarioBtn.addEventListener('click', runScenario);
             clearVotesButton.addEventListener('click', handleClearAllVotes);
 
             // Slider Logic
@@ -1305,31 +1325,86 @@
             autoGenStatus.textContent = `Generating ${count} votes...`;
 
             setTimeout(() => {
-                const candidateIds = Array.from(stvCandidateMap.keys());
-                const partyIds = Array.from(listPartyMap.keys());
-
-                // --- Configuration ---
                 const config = {
                     bulletPct: parseInt(sBullet.value, 10),
                     donkeyPct: parseInt(sDonkey.value, 10),
                     ideoPct: parseInt(sIdeo.value, 10),
                     chaoticPct: parseInt(sChaotic.value, 10)
                 };
-
                 const waveMultipliers = {
                     "UPA": parseFloat(waveUpa.value) || 1.0,
                     "NDA": parseFloat(waveNda.value) || 1.0,
                     "LEFT": parseFloat(waveLeft.value) || 1.0,
                     "IND": parseFloat(waveInd.value) || 1.0
                 };
-
                 const partyPopularities = [
                     parseFloat(popParty1.value) || 1.0, parseFloat(popParty2.value) || 1.0,
                     parseFloat(popParty3.value) || 1.0, parseFloat(popParty4.value) || 1.0,
                     parseFloat(popParty5.value) || 1.0, parseFloat(popParty6.value) || 1.0
                 ];
+                
+                generateVoteBatch(count, config, waveMultipliers, partyPopularities);
+                
+                totalVotesCount.textContent = allVotes.length;
+                autoGenStatus.textContent = `Successfully added ${count} votes.`;
+                autoGenerateButton.disabled = false;
+            }, 50);
+        }
 
-                // --- Ideological Bloc Mapping ---
+        function runScenario() {
+            const scenarioId = scenarioSelect.value;
+            if (scenarioId === 'none') return;
+            
+            runScenarioBtn.disabled = true;
+            autoGenStatus.textContent = `Running Scenario: ${scenarioId}...`;
+            
+            setTimeout(() => {
+                let batches = [];
+                if (scenarioId === 'upa_wave') {
+                    batches = [
+                        { count: 50000, config: { bulletPct: 10, donkeyPct: 5, ideoPct: 65, chaoticPct: 20 }, waves: {"UPA": 3.0, "NDA": 0.8, "LEFT": 1.0, "IND": 1.0}, pops: [2.0, 1.0, 1.0, 1.0, 1.0, 1.0] },
+                        { count: 25000, config: { bulletPct: 15, donkeyPct: 5, ideoPct: 50, chaoticPct: 30 }, waves: {"UPA": 1.5, "NDA": 1.0, "LEFT": 1.0, "IND": 1.0}, pops: [1.5, 1.0, 1.0, 1.0, 1.0, 1.0] }
+                    ];
+                } else if (scenarioId === 'nda_incumbency') {
+                    batches = [
+                        { count: 60000, config: { bulletPct: 20, donkeyPct: 5, ideoPct: 55, chaoticPct: 20 }, waves: {"UPA": 0.8, "NDA": 2.5, "LEFT": 1.0, "IND": 1.0}, pops: [1.0, 2.0, 1.0, 1.0, 1.0, 1.0] },
+                        { count: 20000, config: { bulletPct: 10, donkeyPct: 5, ideoPct: 70, chaoticPct: 15 }, waves: {"UPA": 2.0, "NDA": 0.8, "LEFT": 2.0, "IND": 1.0}, pops: [1.5, 0.8, 2.0, 1.0, 1.0, 1.0] }
+                    ];
+                } else if (scenarioId === 'fractured') {
+                    batches = [
+                        { count: 40000, config: { bulletPct: 45, donkeyPct: 5, ideoPct: 30, chaoticPct: 20 }, waves: {"UPA": 1.0, "NDA": 1.0, "LEFT": 1.0, "IND": 1.0}, pops: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0] },
+                        { count: 40000, config: { bulletPct: 30, donkeyPct: 15, ideoPct: 30, chaoticPct: 25 }, waves: {"UPA": 1.0, "NDA": 1.0, "LEFT": 1.0, "IND": 1.0}, pops: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0] }
+                    ];
+                } else if (scenarioId === 'regional_surge') {
+                    batches = [
+                        { count: 60000, config: { bulletPct: 20, donkeyPct: 5, ideoPct: 45, chaoticPct: 30 }, waves: {"UPA": 0.5, "NDA": 0.5, "LEFT": 1.0, "IND": 3.0}, pops: [0.5, 0.5, 1.0, 5.0, 5.0, 1.0] },
+                        { count: 20000, config: { bulletPct: 10, donkeyPct: 5, ideoPct: 45, chaoticPct: 40 }, waves: {"UPA": 0.5, "NDA": 0.5, "LEFT": 1.0, "IND": 3.0}, pops: [0.5, 0.5, 1.0, 5.0, 5.0, 1.0] }
+                    ];
+                } else if (scenarioId === 'pure_chaos') {
+                    batches = [
+                        { count: 25000, config: { bulletPct: 10, donkeyPct: 20, ideoPct: 20, chaoticPct: 50 }, waves: {"UPA": 1.0, "NDA": 1.0, "LEFT": 1.0, "IND": 1.0}, pops: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0] },
+                        { count: 25000, config: { bulletPct: 40, donkeyPct: 5, ideoPct: 20, chaoticPct: 35 }, waves: {"UPA": 0.5, "NDA": 0.5, "LEFT": 3.0, "IND": 2.0}, pops: [0.5, 0.5, 3.0, 1.0, 1.0, 2.0] },
+                        { count: 25000, config: { bulletPct: 20, donkeyPct: 5, ideoPct: 30, chaoticPct: 45 }, waves: {"UPA": 0.1, "NDA": 0.1, "LEFT": 1.0, "IND": 1.0}, pops: [0.1, 0.1, 1.0, 1.0, 5.0, 5.0] }
+                    ];
+                }
+                
+                let totalAdded = 0;
+                batches.forEach(b => {
+                    generateVoteBatch(b.count, b.config, b.waves, b.pops);
+                    totalAdded += b.count;
+                });
+                
+                totalVotesCount.textContent = allVotes.length;
+                autoGenStatus.textContent = `Scenario complete: Added ${totalAdded} votes.`;
+                runScenarioBtn.disabled = false;
+            }, 50);
+        }
+
+        function generateVoteBatch(count, config, waveMultipliers, partyPopularities) {
+            const candidateIds = Array.from(stvCandidateMap.keys());
+            const partyIds = Array.from(listPartyMap.keys());
+
+            // --- Ideological Bloc Mapping ---
                 const candBlocMap = {
                     "cand1": "IND", "cand2": "UPA", "cand3": "NDA", "cand4": "LEFT",
                     "cand5": "UPA", "cand6": "IND", "cand7": "UPA", "cand8": "IND",
@@ -1465,12 +1540,6 @@
                         }
                     });
                 }
-
-                // 4. Update UI
-                totalVotesCount.textContent = allVotes.length;
-                autoGenStatus.textContent = `Added ${count} votes. (Most Popular: ${mostPopular})`;
-                autoGenerateButton.disabled = false;
-            }, 10);
         }
 
         // --- Result Calculation Functions ---
