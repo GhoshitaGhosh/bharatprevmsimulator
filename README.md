@@ -39,7 +39,8 @@ Voters pick one national party. Seats are allocated proportionally based on the 
 
 ## Simulation Algorithms
 The simulator includes built-in calculation logic mimicking real-world tallying processes:
-- **Fractional Surplus Transfer (STV):** The application handles decimal vote transfers when a candidate exceeds the required quota, ensuring precision in representing voter intent.
+- **Fractional Surplus Transfer (STV):** The application handles decimal vote transfers when a candidate exceeds the required quota. To prevent floating-point precision drift, ballot values and vote tallies are strictly rounded to 6 decimal places during each transfer.
+- **Look-Back Tie-Breaker (STV):** If multiple candidates tie for the lowest number of votes during an elimination round, the algorithm "looks back" at their vote totals in previous rounds to break the tie, eliminating the candidate who had fewer votes earlier.
 - **Voter Behavior Models:** The automated vote generator accurately models various voter archetypes:
   - *Loyal Voters:* Vote straight down party lines.
   - *Strategic Voters:* Rank strong candidates first and may split their ticket for the national vote.

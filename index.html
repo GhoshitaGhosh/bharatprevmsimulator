@@ -140,8 +140,9 @@
                             <!-- ===== UPDATED STV EXPLANATION ===== -->
                             <strong>Local STV (Ranking):</strong> A "quota" (minimum number of votes to win) is calculated.
                             <ul class="list-circle list-inside mt-2 space-y-1 pl-4">
-                                <li><strong>If your #1 choice is elected:</strong> They only need a *part* of your vote's power. The *surplus* (extra) power from your vote is fractionally transferred to your #2 choice.</li>
+                                <li><strong>If your #1 choice is elected:</strong> They only need a *part* of your vote's power. The *surplus* (extra) power from your vote is fractionally transferred to your #2 choice (calculated precisely to 6 decimal places).</li>
                                 <li><strong>If your #1 choice is eliminated:</strong> The *full power* of your vote (at its current value) transfers to your #2 choice.</li>
+                                <li><strong>Tie-Breaker Rule:</strong> If candidates tie for last place during elimination, the system "looks back" at previous rounds to eliminate the candidate who had the fewest votes earlier.</li>
                             </ul>
                             This repeats until 5 winners are found. Your vote's power is never wasted!
                             <!-- ===== END UPDATED EXPLANATION ===== -->
@@ -1344,6 +1345,7 @@
         // ===== NEW: CLASSIC STV (FRACTIONAL TRANSFER) =====
         /**
          * Calculates STV winners using fractional surplus transfer.
+         * Includes Look-Back Tie-Breaker and 6-decimal Precision Fix.
          */
         function calculateSTV(votes, seatsToFill) {
             let log = '';
@@ -1353,6 +1355,8 @@
 
             let winners = [];
             let candidateData = {};
+            let roundVotesHistory = {}; // Track history for look-back tie-breakers
+
             stvCandidateMap.forEach((name, id) => {
                 candidateData[id] = { 
                     name: name.split(' (')[0],
@@ -1360,22 +1364,22 @@
                 };
             });
 
-            // Ballots must now track their value
+            // Ballots track their fractional value (rounded to 6 decimals)
             let ballots = votes.map(v => ({
                 preferences: v.stvRankings
                     .sort((a, b) => a.rank - b.rank)
                     .map(r => r.id),
-                value: 1.0 // Start at full value
+                value: 1.0 
             }));
 
             let round = 1;
-            while (winners.length < seatsToFill && round < (stvCandidateMap.size * 2)) { // Safety break
+            while (winners.length < seatsToFill && round < (stvCandidateMap.size * 2)) {
                 log += `--- Round ${round} ---\n`;
 
                 let roundVotes = {};
                 Object.keys(candidateData).forEach(id => {
                     if (candidateData[id].status === 'running') {
-                        roundVotes[id] = 0.0; // Use floats
+                        roundVotes[id] = 0.0;
                     }
                 });
 
@@ -1398,17 +1402,22 @@
                     }
                 });
 
+                // Precision Fix: Round all tallies to 6 decimal places to prevent floating point drift
+                Object.keys(roundVotes).forEach(id => {
+                    roundVotes[id] = parseFloat(roundVotes[id].toFixed(6));
+                });
+                
+                // Store history for this round
+                roundVotesHistory[round] = { ...roundVotes };
+
                 let voteStrings = [];
                 Object.keys(roundVotes).sort((a,b) => roundVotes[b] - roundVotes[a]).forEach(id => {
-                    // ===== FORMATTING FIX =====
-                    voteStrings.push(`${candidateData[id].name}: ${parseFloat(roundVotes[id].toFixed(4))} votes`);
+                    voteStrings.push(`${candidateData[id].name}: ${roundVotes[id]} votes`);
                 });
                 log += "Current vote totals for 'running' candidates:\n";
                 voteStrings.forEach(s => log += `  - ${s}\n`);
-                // ===== FORMATTING FIX =====
-                log += `(Exhausted vote value this round: ${parseFloat(exhaustedBallots.toFixed(4))})\n`;
+                log += `(Exhausted vote value this round: ${parseFloat(exhaustedBallots.toFixed(6))})\n`;
 
-                // ===== Rule 1: Zero-Vote Elimination in Round 1 =====
                 if (round === 1) {
                     log += "--- Round 1 (Zero-Vote Elimination) ---\n";
                     let zeroVoteCandidates = Object.keys(roundVotes).filter(id => roundVotes[id] === 0);
@@ -1432,11 +1441,10 @@
                             log += `  - ✅ ELECTED: ${candidateData[id].name} (filling remaining seat)\n`;
                         });
                         log += "All remaining candidates are elected.\n";
-                        break; // Exit the main while loop
+                        break;
                     }
                     log += "\n";
                 }
-                // ===== End Rule 1 =====
 
                 let electedThisRound = false;
                 const sortedRunningCandidates = Object.keys(roundVotes).sort((a, b) => roundVotes[b] - roundVotes[a]);
@@ -1447,38 +1455,33 @@
                         candidateData[id].status = 'elected';
                         electedThisRound = true;
 
-                        const surplus = roundVotes[id] - quota;
-                        // Precision check: if surplus is tiny (floating point error), treat as 0
-                        if (surplus < 1e-9) {
-                            // ===== FORMATTING FIX =====
-                            log += `✅ ELECTED: ${candidateData[id].name} has ${parseFloat(roundVotes[id].toFixed(4))} votes, meeting quota of ${quota}.\n`;
+                        const surplus = parseFloat((roundVotes[id] - quota).toFixed(6));
+                        if (surplus <= 0) {
+                            log += `✅ ELECTED: ${candidateData[id].name} has ${roundVotes[id]} votes, meeting quota of ${quota}.\n`;
                             log += `  - Surplus is negligible. No votes to transfer.\n`;
-                            continue; // Move to next candidate
+                            continue;
                         }
 
-                        const transferValue = surplus / roundVotes[id];
+                        // Precision Fix
+                        const transferValue = parseFloat((surplus / roundVotes[id]).toFixed(6));
 
-                        // ===== FORMATTING FIX =====
-                        log += `✅ ELECTED: ${candidateData[id].name} has ${parseFloat(roundVotes[id].toFixed(4))} votes, meeting quota of ${quota}.\n`;
-                        log += `  - Surplus: ${parseFloat(surplus.toFixed(4))}. Transfer Value: ${parseFloat(transferValue.toFixed(6))}.\n`;
+                        log += `✅ ELECTED: ${candidateData[id].name} has ${roundVotes[id]} votes, meeting quota of ${quota}.\n`;
+                        log += `  - Surplus: ${surplus}. Transfer Value: ${transferValue}.\n`;
                         
                         let ballotsToTransfer = 0;
                         
-                        // Find all ballots that voted for this winner
                         ballots.forEach(ballot => {
-                            // Find the *first* 'running' candidate on this ballot
                             let firstChoiceId = null;
                             for (const candId of ballot.preferences) {
-                                // Check status *before* this round's election
                                 if (candidateData[candId] && (candidateData[candId].status === 'running' || candId === id)) {
                                     firstChoiceId = candId;
                                     break;
                                 }
                             }
                             
-                            // If this ballot's first choice was the winner, transfer its value
                             if (firstChoiceId === id) {
-                                ballot.value = ballot.value * transferValue;
+                                // Precision Fix on Ballot Value
+                                ballot.value = parseFloat((ballot.value * transferValue).toFixed(6));
                                 ballotsToTransfer++;
                             }
                         });
@@ -1510,33 +1513,57 @@
                     let minVotes = Infinity;
 
                     runningCandidates.forEach(id => {
-                        // Use a small epsilon for float comparison
-                        if (roundVotes[id] < minVotes - 1e-9) {
+                        if (roundVotes[id] < minVotes) {
                             minVotes = roundVotes[id];
                             tiedForLast = [id];
-                        } else if (Math.abs(roundVotes[id] - minVotes) < 1e-9) {
+                        } else if (roundVotes[id] === minVotes) {
                             tiedForLast.push(id);
                         }
                     });
 
                     let eliminatedCandId = null;
                     if (tiedForLast.length > 0) {
-                        if (tiedForLast.length > 1) {
-                            // ===== FORMATTING FIX =====
-                            log += `  - Tie for last place (with ${parseFloat(minVotes.toFixed(4))} votes) between: ${tiedForLast.map(id => candidateData[id].name).join(', ')}\n`;
-                            log += `  - Randomly selecting one to eliminate.\n`;
+                        let tiedCandidates = [...tiedForLast];
+                        if (tiedCandidates.length > 1) {
+                            log += `  - Tie for last place (with ${minVotes} votes) between: ${tiedCandidates.map(id => candidateData[id].name).join(', ')}\n`;
+                            log += `  - Resolving tie by looking back at previous rounds...\n`;
+                            
+                            for (let prevRound = round - 1; prevRound >= 1; prevRound--) {
+                                let prevMinVotes = Infinity;
+                                let prevTied = [];
+                                tiedCandidates.forEach(id => {
+                                    const votes = roundVotesHistory[prevRound][id] || 0;
+                                    if (votes < prevMinVotes) {
+                                        prevMinVotes = votes;
+                                        prevTied = [id];
+                                    } else if (votes === prevMinVotes) {
+                                        prevTied.push(id);
+                                    }
+                                });
+                                if (prevTied.length < tiedCandidates.length) {
+                                    log += `    -> In Round ${prevRound}, lowest votes among tied candidates was ${prevMinVotes} by ${prevTied.map(id => candidateData[id].name).join(', ')}.\n`;
+                                    tiedCandidates = prevTied;
+                                    if (tiedCandidates.length === 1) break;
+                                } else {
+                                    log += `    -> In Round ${prevRound}, candidates remained tied at ${prevMinVotes} votes.\n`;
+                                }
+                            }
+                            
+                            if (tiedCandidates.length > 1) {
+                                log += `  - Tie could not be resolved by look-back. Randomly selecting one to eliminate.\n`;
+                            } else {
+                                log += `  - Look-back resolved tie.\n`;
+                            }
                         }
-                        eliminatedCandId = tiedForLast[Math.floor(Math.random() * tiedForLast.length)];
+                        eliminatedCandId = tiedCandidates[Math.floor(Math.random() * tiedCandidates.length)];
                     }
-
 
                     if (eliminatedCandId) {
                         candidateData[eliminatedCandId].status = 'eliminated';
-                        // ===== FORMATTING FIX =====
-                        log += `❌ ELIMINATED: ${candidateData[eliminatedCandId].name} has the fewest votes (${parseFloat(minVotes.toFixed(4))}) and is eliminated.\n`;
+                        log += `❌ ELIMINATED: ${candidateData[eliminatedCandId].name} is eliminated.\n`;
                         log += `  - All ballots for ${candidateData[eliminatedCandId].name} will now transfer at their current value.\n`;
                     } else {
-                        log += "Stalemate: No one to eliminate or all running candidates have 0 votes. Ending count.\n";
+                        log += "Stalemate: No one to eliminate. Ending count.\n";
                         break;
                     }
                 }
@@ -1549,7 +1576,6 @@
             const finalWinners = winners.slice(0, seatsToFill);
             log += "Final Elected Winners:\n" + finalWinners.map((id, i) => `  ${i+1}. ${candidateData[id].name}`).join('\n') + "\n";
             
-            // Add warning for unfilled seats
             let unfilledSeats = seatsToFill - finalWinners.length;
             if (unfilledSeats > 0) {
                 log += `\n🚨 ${unfilledSeats} SEAT(S) UNFILLED. BY-ELECTION NEEDED.\n`;
