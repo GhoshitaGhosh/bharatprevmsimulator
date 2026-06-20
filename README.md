@@ -37,11 +37,24 @@ Voters pick one national party. Seats are allocated proportionally based on the 
 - **More Stable than MMP:** Counts local and national seats separately, preventing "overhang seats" and ensuring a predictable parliament size.
 - **Prevents Fragmentation:** The 5% threshold encourages smaller parties to consolidate.
 
+## Simulation Algorithms
+The simulator includes built-in calculation logic mimicking real-world tallying processes:
+- **Fractional Surplus Transfer (STV):** The application handles decimal vote transfers when a candidate exceeds the required quota, ensuring precision in representing voter intent.
+- **Voter Behavior Models:** The automated vote generator accurately models various voter archetypes:
+  - *Loyal Voters:* Vote straight down party lines.
+  - *Strategic Voters:* Rank strong candidates first and may split their ticket for the national vote.
+  - *Chaotic Voters:* Provide completely random rankings and national choices.
+
 ## "No Black Box" Verification
 To build trust, the system is designed to be fully verifiable:
 - **The EVM:** A simple and secure ballot marker, not a black box.
 - **The VVPAT:** The primary source of truth, optionally printed with a machine-readable QR code.
 - **The Audit:** A mandatory Risk-Limiting Audit (RLA) to statistically confirm the electronic count against the VVPAT slips.
+
+## Development & Architecture
+The entire simulator is packaged as a static, single-page application (SPA).
+- All UI state, voting logic, and result tabulation algorithms are contained within `index.html`.
+- **Zero-Backend System:** Votes are securely held in memory for the duration of the session and wiped on refresh.
 
 ## How to Run
 1. Clone or download the repository.
