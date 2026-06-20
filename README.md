@@ -41,10 +41,13 @@ Voters pick one national party. Seats are allocated proportionally based on the 
 The simulator includes built-in calculation logic mimicking real-world tallying processes:
 - **Fractional Surplus Transfer (STV):** The application handles decimal vote transfers when a candidate exceeds the required quota. To prevent floating-point precision drift, ballot values and vote tallies are strictly rounded to 6 decimal places during each transfer.
 - **Look-Back Tie-Breaker (STV):** If multiple candidates tie for the lowest number of votes during an elimination round, the algorithm "looks back" at their vote totals in previous rounds to break the tie, eliminating the candidate who had fewer votes earlier.
-- **Voter Behavior Models:** The automated vote generator accurately models various voter archetypes:
-  - *Loyal Voters:* Vote straight down party lines.
-  - *Strategic Voters:* Rank strong candidates first and may split their ticket for the national vote.
-  - *Chaotic Voters:* Provide completely random rankings and national choices.
+- **Voter Behavior Models:** The automated vote generator accurately models four distinct voter archetypes:
+  - *Bullet Voters:* Pick only their #1 choice and leave the rest of the ballot blank, intentionally causing ballot exhaustion to test the mathematical limits of the Droop Quota.
+  - *Donkey Voters:* Number the ballot sequentially top-to-bottom.
+  - *Ideological Voters:* Heavily favor candidates within their preferred ideological bloc and mirror their local choice on the national ballot.
+  - *Chaotic Voters:* Provide completely random local rankings and random national choices.
+- **Wave Elections (Macro Volatility):** The simulator can apply massive "Wave Multipliers" to specific ideological blocs before generating votes. This simulates shifting political climates (e.g., a "UPA Wave") and mathematically forces massive swings in #1 local vote distribution.
+- **Dynamic List-PR Base Popularity:** To prevent independent and chaotic voters from perfectly tying the regional parties, the simulator utilizes a hidden, dynamic "National Party Popularity" weight. Randomly distributed List-PR votes flock toward the more popular parties using a roulette-wheel selection algorithm, allowing regional parties to surge nationally.
 
 ## "No Black Box" Verification
 To build trust, the system is designed to be fully verifiable:
