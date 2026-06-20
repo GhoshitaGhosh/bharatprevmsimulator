@@ -725,7 +725,18 @@
     <!-- Admin & Results Section -->
     <div class="w-full max-w-6xl mt-8 p-6 bg-white rounded-lg shadow-lg">
         <h2 class="text-2xl font-bold text-center mb-4">Admin Panel</h2>
+        
         <div class="text-center mb-4">
+            <!-- Instructions Infobox -->
+            <div class="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-left text-sm text-gray-700 max-w-2xl mx-auto rounded-r shadow-sm">
+                <h3 class="font-bold text-yellow-800 text-base mb-2">📊 Simulation Guide & Tips</h3>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>Electorate Mood:</strong> Controls voter behavior. <em>Bullet</em> voters pick only 1 candidate (causes STV ballot exhaustion). <em>Donkey</em> voters pick top-to-bottom. <em>Ideological</em> voters rank their alliance. <strong>Must sum to 100%.</strong></li>
+                    <li><strong>Bloc Wave Multipliers:</strong> Simulates a "wave" election by multiplying the base popularity of all candidates in an alliance. Set UPA to <code class="bg-yellow-100 px-1 rounded">3.0</code> to simulate a massive INC sweep.</li>
+                    <li><strong>National Party Popularity:</strong> Dictates where "random" voters (Donkey, Chaotic, and Independents) flock on the National List-PR ballot. Set TMC to <code class="bg-yellow-100 px-1 rounded">10.0</code> to watch them dominate the List-PR despite having few local candidates!</li>
+                </ul>
+            </div>
+
             <p class="text-lg">Total Votes Cast: <strong id="total-votes-count">0</strong></p>
             
             <!-- Electorate Mood Sliders -->
